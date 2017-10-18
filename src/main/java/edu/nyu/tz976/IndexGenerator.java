@@ -74,10 +74,10 @@ public class IndexGenerator {
 
     public void writeInvertedIndex(List<Entry<String, String>> docFreqParList) {
 
+        // Count the byte location while writing to inverted index list
         startByte = endByte + 1;
 
         docFreqParList.forEach(docFreqPair -> {
-//            String outputData = " " + docFreqPair.getKey() + "," + docFreqPair.getValue();
             try {
                 byte[] byteData = compressDocFreqPair(docFreqPair.getKey(), docFreqPair.getValue());
 

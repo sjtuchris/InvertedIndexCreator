@@ -61,7 +61,6 @@ public class DocProcessor {
     }
 
     private void wordCount(String line) {
-//        Iterable<String> words = Splitter.on(' ').split(line);
         String regex = "([^a-zA-Z0-9']+)'*\\1*";
         String[] words = line.split(regex);
         for (String word : words) {

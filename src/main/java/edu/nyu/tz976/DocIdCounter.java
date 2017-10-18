@@ -1,6 +1,7 @@
 package edu.nyu.tz976;
 
 public class DocIdCounter {
+    // Make it atomic
     public static volatile int DOC_ID = 0;
 
     public static synchronized int getDocId() {

@@ -27,14 +27,10 @@ public class WetReader {
                 pageCheck = newPageCheck(line, contentType);
 
                 if (pageCheck.equals("Header")) {
-//                    printHashMap(docCounter);
                     contentType = "Header";
-//                    System.out.println(contentType);
                     docCounter++;
                 } else if (pageCheck.equals("Content")) {
                     contentType = "Content";
-//                    System.out.println(contentType);
-
                 }
 
                 if (contentType.equals("Content")) {
@@ -42,7 +38,6 @@ public class WetReader {
                         List<String> pageLineList = Lists.newArrayList();
                         fileContentList.add(pageLineList);
                     }
-//                    System.out.println(docCounter);
                     fileContentList.get(fileContentList.size() - 1).add(line);
                 } else {
                     if (fileHeaderList.size() < docCounter + 1) {
@@ -51,9 +46,7 @@ public class WetReader {
                     }
                     fileHeaderList.get(fileHeaderList.size() - 1).add(line);
                 }
-//                System.out.println(line);
             }
-//            System.out.println(docCounter);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -74,13 +67,4 @@ public class WetReader {
         }
         return "Pass";
     }
-
-//    private void printHashMap(int DOC_ID) {
-//        for(Object objname:wordCountMap.keySet()) {
-//            System.out.println("DocId: " + String.valueOf(DOC_ID));
-//            System.out.println(objname);
-//            System.out.println(wordCountMap.get(objname));
-//        }
-//        wordCountMap = Maps.newHashMap();
-//    }
 }

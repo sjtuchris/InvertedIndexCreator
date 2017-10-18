@@ -29,7 +29,6 @@ public class OutputUtils {
                 tmpMap.forEach((word, count) -> {
                     int docId = DocIdCounter.getDocId();
                     String stringData = word + " " + String.valueOf(docId) + " " + count + "\n";
-//                        System.out.println(stringData);
                     byte[] byteData = stringData.getBytes();
 
                     try {
@@ -59,7 +58,6 @@ public class OutputUtils {
                 byte[] byteData = stringData.getBytes();
 
             try {
-//                Files.write(file, byteData, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                 outputStream.write(byteData);
             } catch (IOException e){
                 //

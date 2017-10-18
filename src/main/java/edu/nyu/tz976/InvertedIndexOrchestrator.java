@@ -20,19 +20,9 @@ public class InvertedIndexOrchestrator {
     public void test() {
         cleanHistoryFiles();
 
-//        OutputUtils outputUtils = new OutputUtils();
         IndexGenerator indexGenerator = new IndexGenerator();
 
-//        String[] paths = {"./input/CC-MAIN-20170919112242-20170919132242-00000.warc.wet", "./input/CC-MAIN-20170919112242-20170919132242-00001.warc.wet"};
-//        String fileName = "test.warc.wet";
-
-        // Load wet data file and store contents in a list
-
-//        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
         List<Path> pathList = wetFileList("./input");
-
-//            Files.newDirectoryStream(Paths.get("./input"), path -> path.toString().endsWith(".wet"))
 
         try {
             ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -104,18 +94,6 @@ public class InvertedIndexOrchestrator {
             e.printStackTrace();
         }
     }
-
-//    private void unixSort() {
-//        Runtime rt = Runtime.getRuntime();
-//        try {
-////            ProcessBuilder pb = new ProcessBuilder("./src/main/shell/unixSortPostings.sh");
-//            Process pr = rt.exec(new String[] {"/bin/sh", "./src/main/shell/unixSortPostings.sh"});
-////            Process pr = pb.start();
-//            pr.waitFor();
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     private void mergeSort() {
         try {
