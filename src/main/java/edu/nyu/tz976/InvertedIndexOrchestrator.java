@@ -35,7 +35,7 @@ public class InvertedIndexOrchestrator {
 //            Files.newDirectoryStream(Paths.get("./input"), path -> path.toString().endsWith(".wet"))
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(2);
+            ExecutorService executor = Executors.newFixedThreadPool(1);
             CountDownLatch countDownLatch = new CountDownLatch(pathList.size());
 
             pathList.forEach(path -> {
@@ -44,31 +44,21 @@ public class InvertedIndexOrchestrator {
                     DocProcessor docProcessor = new DocProcessor();
 
                     String fileName = path.getFileName().toString();
-                    System.out.println("Starting to load " + fileName);
-//                    LOGGER.info("Starting to load " + fileName);
+                    LOGGER.info("Starting to load " + fileName);
                     wetReader.loadWetData(path);
-                    System.out.println("Wet data " + fileName + " loaded!");
-//                    LOGGER.info("Wet data " + fileName + " loaded!");
+                    LOGGER.info("Wet data " + fileName + " loaded!");
 
                     // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-                    System.out.println("Start processing " + fileName);
-//                    LOGGER.info("Start processing " + fileName);
+                    LOGGER.info("Start processing " + fileName);
                     docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
-//                    LOGGER.info("Process " + fileName + " complete!");
-                    System.out.println("Process " + fileName + " complete!");
-
-//                        wetReader.fileHeaderList = Lists.newArrayList();
-//                        wetReader.fileContentList = Lists.newArrayList();
+                    LOGGER.info("Process " + fileName + " complete!");
 
                     // Write out temp postings
-                    System.out.println("Generating tempPostings for " + fileName);
-//                    LOGGER.info("Generating tempPostings for " + fileName);
+                    LOGGER.info("Generating tempPostings for " + fileName);
                     OutputUtils.writeIntermediatePostings(docProcessor.wordCountMapList, fileName);
-//                        docProcessor.wordCountMapList = Lists.newArrayList();
 
-//                    LOGGER.info("Postings generated!");
-                    System.out.println("Postings generated!");
-
+                    LOGGER.info("Postings generated!");
+                    countDownLatch.countDown();
                 };
                 executor.execute(runnable);
             });
