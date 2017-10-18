@@ -4,19 +4,18 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.sun.deploy.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
 public class DocProcessor {
-    public List<List<String>> pageUrlTable = Lists.newArrayList();
     public List<HashMap<String, Integer>> wordCountMapList = Lists.newArrayList();
 
     private HashMap<String, Integer> wordCountMap = Maps.newHashMap();
 
     public void processDocData (List<List<String>> contentList, List<List<String>> headerList) {
+        List<List<String>> pageUrlList = Lists.newArrayList();
 
         IntStream.range(0, contentList.size())
                 .forEach(idx -> {
@@ -29,11 +28,10 @@ public class DocProcessor {
 
                     // Map url and termNum for each doc
                     List<String> pageUrlTermNumTuple = pageUrlMapper(headerLines);
-                    pageUrlTable.add(pageUrlTermNumTuple);
-
+                    pageUrlList.add(pageUrlTermNumTuple);
                     wordCountMap = Maps.newHashMap();
                 });
-
+        PageUrlTable.appendPageUrlList(pageUrlList);
     }
 
     private List<String> pageUrlMapper(List<String> headerLines) {

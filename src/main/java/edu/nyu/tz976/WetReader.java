@@ -1,28 +1,23 @@
 package edu.nyu.tz976;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import java.io.*;
-import java.util.HashMap;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class WetReader {
-    private HashMap<Integer, Integer> wordCountMap = Maps.newHashMap();
-    private HashMap<String, Integer> wordIdMap = Maps.newHashMap();
-    private List<String> wordList = Lists.newArrayList();
     public List<List<String>> fileContentList = Lists.newArrayList();
     public List<List<String>> fileHeaderList = Lists.newArrayList();
 
-    public void loadWetData(String fileName) {
+    public void loadWetData(Path path) {
 
         BufferedReader reader = null;
         int docCounter = -1;
 
         try {
-            File file = new File(fileName);
+            File file = path.toFile();
             reader = new BufferedReader(new FileReader(file));
             String contentType = "Header";
             String pageCheck;
@@ -80,12 +75,12 @@ public class WetReader {
         return "Pass";
     }
 
-    private void printHashMap(int docId) {
-        for(Object objname:wordCountMap.keySet()) {
-            System.out.println("DocId: " + String.valueOf(docId));
-            System.out.println(objname);
-            System.out.println(wordCountMap.get(objname));
-        }
-        wordCountMap = Maps.newHashMap();
-    }
+//    private void printHashMap(int DOC_ID) {
+//        for(Object objname:wordCountMap.keySet()) {
+//            System.out.println("DocId: " + String.valueOf(DOC_ID));
+//            System.out.println(objname);
+//            System.out.println(wordCountMap.get(objname));
+//        }
+//        wordCountMap = Maps.newHashMap();
+//    }
 }

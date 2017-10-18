@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 public class IndexGenerator {
-    private FileOutputStream invertedIndexOutStream;
+    private BufferedOutputStream invertedIndexOutStream;
     private BufferedReader sortedPostingsInStream;
     private HashMap<String, LexiconWordTuple> lexiconMap = Maps.newHashMap();
     private long startByte = 0;
@@ -26,7 +26,6 @@ public class IndexGenerator {
         File invertedFile = invertedIndexPath.toFile();
         File postingsFile = sortedPostingsPath.toFile();
 
-        OutputUtils outputUtils = new OutputUtils();
         String wordFlag = null;
         List<Entry<String, String>> docFreqPairList = Lists.newArrayList();
 
@@ -34,19 +33,19 @@ public class IndexGenerator {
         try {
             invertedFile.createNewFile();
             sortedPostingsInStream = new BufferedReader(new FileReader(postingsFile));
-            invertedIndexOutStream = new FileOutputStream(invertedFile, true);
+            invertedIndexOutStream = new BufferedOutputStream(new FileOutputStream(invertedFile, true));
 
             String line;
             while ((line = sortedPostingsInStream.readLine()) != null) {
 
-                // For tempPostings, each single line is: "word docId frequency"
+                // For tempPostings, each single line is: "word DOC_ID frequency"
                 String[] postingSplit = line.split(" ");
                 if (postingSplit.length == 3) {
                     if (wordFlag == null) {
                         wordFlag = postingSplit[0];
                     }
 
-                    //postingSplit[1] is docId, postingSplit[2] is frequency
+                    //postingSplit[1] is DOC_ID, postingSplit[2] is frequency
                     Entry<String, String> docFreqPair = new SimpleEntry<String, String>(postingSplit[1], postingSplit[2]);
 
                     // Before comes to the next word, write current word's inverted index list and update its lexicon
@@ -66,7 +65,7 @@ public class IndexGenerator {
 
             sortedPostingsInStream.close();
             invertedIndexOutStream.close();
-            outputUtils.writeLexiconMap(lexiconMap);
+            OutputUtils.writeLexiconMap(lexiconMap);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,7 +73,6 @@ public class IndexGenerator {
     }
 
     public void writeInvertedIndex(List<Entry<String, String>> docFreqParList) {
-        Path file = Paths.get("./output/invertedIndex.txt");
 
         startByte = endByte + 1;
 
@@ -90,16 +88,10 @@ public class IndexGenerator {
                 e.printStackTrace();
             }
         });
-//
-//        try {
-//            invertedIndexOutStream.write("\n".getBytes());
-//            endByte = endByte + "\n".getBytes().length;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+
     }
 
-    // Store (docId, frequency) pair into an Integer list and compress
+    // Store (DOC_ID, frequency) pair into an Integer list and compress
     private byte[] compressDocFreqPair(String docId, String frequency) {
         List<Integer> docFreqPair = Lists.newArrayList();
         docFreqPair.add(Integer.valueOf(docId));

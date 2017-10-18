@@ -15,30 +15,30 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class OutputUtils {
-    public void writeIntermediatePostings(List<HashMap<String, Integer>> wordCountMapList) {
 
-        Path file = Paths.get("./output/tempPostings.txt");
+    public static void writeIntermediatePostings(List<HashMap<String, Integer>> wordCountMapList, String fileName) {
+
+        Path file = Paths.get("./output/Postings_" + fileName + ".txt");
         File outputFile = file.toFile();
 
         try {
             outputFile.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(outputFile, true);
 
-            IntStream.range(0, wordCountMapList.size())
-                    .forEach(idx -> {
-                        HashMap<String, Integer> tmpMap = wordCountMapList.get(idx);
-                        tmpMap.forEach((word, count) -> {
-                            String stringData = word + " " + String.valueOf(idx) + " " + count + "\n";
+            wordCountMapList.forEach(tmpMap -> {
+                tmpMap.forEach((word, count) -> {
+                    int docId = DocIdCounter.getDocId();
+                    String stringData = word + " " + String.valueOf(docId) + " " + count + "\n";
 //                        System.out.println(stringData);
-                            byte[] byteData = stringData.getBytes();
+                    byte[] byteData = stringData.getBytes();
 
-                            try {
-                                outputStream.write(byteData);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
-                    });
+                    try {
+                        outputStream.write(byteData);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            });
 
             outputStream.close();
         } catch (IOException e) {
@@ -46,7 +46,7 @@ public class OutputUtils {
         }
     }
 
-    public void writeLexiconMap(HashMap<String, LexiconWordTuple> lexiconMap) {
+    public static void writeLexiconMap(HashMap<String, LexiconWordTuple> lexiconMap) {
         Path file = Paths.get("./output/lexicon.txt");
         File outpuFile = file.toFile();
 
@@ -72,7 +72,7 @@ public class OutputUtils {
         }
     }
 
-    public void writePageUrlTable(List<List<String>> pageUrlTable) {
+    public static void writePageUrlTable(List<List<String>> pageUrlTable) {
         Path file = Paths.get("./output/pageUrlTable.txt");
 
         int counter = 0;

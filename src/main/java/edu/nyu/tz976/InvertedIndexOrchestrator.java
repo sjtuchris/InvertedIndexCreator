@@ -1,50 +1,98 @@
 package edu.nyu.tz976;
 
+import com.google.common.collect.Lists;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.concurrent.*;
+
 
 public class InvertedIndexOrchestrator {
-    private final static Logger LOGGER = Logger.getLogger(InvertedIndexOrchestrator.class.getName());
+
+    private static final Logger LOGGER = LogManager.getLogger(InvertedIndexOrchestrator.class);
 
     public void test() {
         cleanHistoryFiles();
 
-        WetReader wetReader = new WetReader();
-        DocProcessor docProcessor = new DocProcessor();
-        OutputUtils outputUtils = new OutputUtils();
+//        OutputUtils outputUtils = new OutputUtils();
         IndexGenerator indexGenerator = new IndexGenerator();
 
-        String fileName = "CC-MAIN-20170919112242-20170919132242-00000.warc.wet";
+//        String[] paths = {"./input/CC-MAIN-20170919112242-20170919132242-00000.warc.wet", "./input/CC-MAIN-20170919112242-20170919132242-00001.warc.wet"};
 //        String fileName = "test.warc.wet";
 
         // Load wet data file and store contents in a list
-        wetReader.loadWetData(fileName);
-        List<List<String>> headerList = wetReader.fileHeaderList;
-        List<List<String>> contentList = wetReader.fileContentList;
-        LOGGER.info("Wet data loaded!");
 
-        // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-        docProcessor.processDocData(contentList, headerList);
-        List<HashMap<String, Integer>> wordCountMapList = docProcessor.wordCountMapList;
-        List<List<String>> pageUrlTable = docProcessor.pageUrlTable;
+//        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        List<Path> pathList = wetFileList("./input");
+
+//            Files.newDirectoryStream(Paths.get("./input"), path -> path.toString().endsWith(".wet"))
+
+        try {
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            CountDownLatch countDownLatch = new CountDownLatch(pathList.size());
+
+            pathList.forEach(path -> {
+                Runnable runnable = () -> {
+                    WetReader wetReader = new WetReader();
+                    DocProcessor docProcessor = new DocProcessor();
+
+                    String fileName = path.getFileName().toString();
+                    System.out.println("Starting to load " + fileName);
+//                    LOGGER.info("Starting to load " + fileName);
+                    wetReader.loadWetData(path);
+                    System.out.println("Wet data " + fileName + " loaded!");
+//                    LOGGER.info("Wet data " + fileName + " loaded!");
+
+                    // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
+                    System.out.println("Start processing " + fileName);
+//                    LOGGER.info("Start processing " + fileName);
+                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
+//                    LOGGER.info("Process " + fileName + " complete!");
+                    System.out.println("Process " + fileName + " complete!");
+
+//                        wetReader.fileHeaderList = Lists.newArrayList();
+//                        wetReader.fileContentList = Lists.newArrayList();
+
+                    // Write out temp postings
+                    System.out.println("Generating tempPostings for " + fileName);
+//                    LOGGER.info("Generating tempPostings for " + fileName);
+                    OutputUtils.writeIntermediatePostings(docProcessor.wordCountMapList, fileName);
+//                        docProcessor.wordCountMapList = Lists.newArrayList();
+
+//                    LOGGER.info("Postings generated!");
+                    System.out.println("Postings generated!");
+
+                };
+                executor.execute(runnable);
+            });
+
+            executor.shutdown();
+
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
 
         // Write intermediatePosting and pageUrlTable to disk
-        LOGGER.info("Starting to generate tempPostings");
-        outputUtils.writeIntermediatePostings(wordCountMapList);
-        LOGGER.info("Postings generated!");
-        outputUtils.writePageUrlTable(pageUrlTable);
+
+        OutputUtils.writePageUrlTable(PageUrlTable.getPageUrlTable());
         LOGGER.info("PageUrlTable generated!");
 
         // Sort temp postings and export to disk
-        unixSort();
+        LOGGER.info("Starting unix sort");
+        mergeSort();
         LOGGER.info("Unix sort complete!");
 
-        // Generate inverted index list according to the sorted temp posting file
+        // Generate lexicon and inverted index list according to the sorted temp posting file
+        LOGGER.info("Starting generating inverted index list and lexicon");
         indexGenerator.processTempPostings();
         LOGGER.info("Inverted index list complete!");
     }
@@ -67,15 +115,43 @@ public class InvertedIndexOrchestrator {
         }
     }
 
-    private void unixSort() {
-        Runtime rt = Runtime.getRuntime();
+//    private void unixSort() {
+//        Runtime rt = Runtime.getRuntime();
+//        try {
+////            ProcessBuilder pb = new ProcessBuilder("./src/main/shell/unixSortPostings.sh");
+//            Process pr = rt.exec(new String[] {"/bin/sh", "./src/main/shell/unixSortPostings.sh"});
+////            Process pr = pb.start();
+//            pr.waitFor();
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    private void mergeSort() {
         try {
-            Process pr = rt.exec(new String[] {"/bin/sh", "./unixSortPostings.sh"});
-            pr.waitFor();
+            String command =
+                    "cd ./output;" +
+                    "for f in Postings_*.txt ;" +
+                    "do sort -o $f < $f ;" +
+                    "done;" +
+                    "sort -n --merge Postings_*.txt -o sortedPostings.txt;" +
+                    "rm *_*.txt";
+            Process process = new ProcessBuilder("/bin/bash", "-c", command).start();
+            process.waitFor();
+
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-
+    private List<Path> wetFileList(String directory) {
+        List<Path> pathList = Lists.newArrayList();
+        File dir = new File(directory);
+        for (File file : dir.listFiles()) {
+            if (file.getName().endsWith((".wet"))) {
+                pathList.add(Paths.get(file.getPath()));
+            }
+        }
+        return pathList;
+    }
 }

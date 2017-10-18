@@ -15,7 +15,7 @@ public class InvertedListSeeker {
         reader.close();
         System.out.println("");
 
-        String fileName = "invertedIndex.txt";
+        String fileName = "./output/invertedIndex.txt";
         readFromRandomAccessFile(fileName, start, end);
     }
 
