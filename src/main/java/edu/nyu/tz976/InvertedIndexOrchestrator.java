@@ -39,7 +39,7 @@ public class InvertedIndexOrchestrator {
                     LOGGER.info("Wet data " + fileName + " loaded!");
 
                     // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-                    LOGGER.info("Start processing " + fileName);
+                    LOGGER.info("Processing " + fileName);
                     docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
                     LOGGER.info("Process " + fileName + " complete!");
 
@@ -96,20 +96,31 @@ public class InvertedIndexOrchestrator {
     }
 
     private void mergeSort() {
-        try {
-            String command =
-                    "cd ./output;" +
-                    "for f in Postings_*.txt ;" +
-                    "do sort -o $f < $f ;" +
-                    "done;" +
-                    "sort -n --merge Postings_*.txt -o sortedPostings.txt;" +
-                    "rm *_*.txt";
-            Process process = new ProcessBuilder("/bin/bash", "-c", command).start();
-            process.waitFor();
+        Runtime rt = Runtime.getRuntime();
 
+        try {
+            Process pr = rt.exec(new String[] {"/bin/sh", "./src/main/shell/unixSortPostings.sh"});
+            pr.waitFor();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
+
+
+//        try {
+//            String command =
+//                    "cd ./output;" +
+//                    "for f in Postings_*.txt ;" +
+//                    "do sort -o $f < $f ;" +
+//                    "done;" +
+//                    "sort -n --merge Postings_*.txt -o sortedPostings.txt;" +
+//                    "rm *_*.txt";
+//            Process process = new ProcessBuilder("/bin/bash", "-c", command).start();
+//            process.waitFor();
+//
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private List<Path> wetFileList(String directory) {

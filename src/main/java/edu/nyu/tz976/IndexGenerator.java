@@ -39,7 +39,7 @@ public class IndexGenerator {
             while ((line = sortedPostingsInStream.readLine()) != null) {
 
                 // For tempPostings, each single line is: "word DOC_ID frequency"
-                String[] postingSplit = line.split(" ");
+                String[] postingSplit = line.split("\t");
                 if (postingSplit.length == 3) {
                     if (wordFlag == null) {
                         wordFlag = postingSplit[0];

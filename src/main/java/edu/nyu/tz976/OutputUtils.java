@@ -28,7 +28,7 @@ public class OutputUtils {
             wordCountMapList.forEach(tmpMap -> {
                 tmpMap.forEach((word, count) -> {
                     int docId = DocIdCounter.getDocId();
-                    String stringData = word + " " + String.valueOf(docId) + " " + count + "\n";
+                    String stringData = word + "\t" + String.valueOf(docId) + "\t" + count + "\n";
                     byte[] byteData = stringData.getBytes();
 
                     try {
