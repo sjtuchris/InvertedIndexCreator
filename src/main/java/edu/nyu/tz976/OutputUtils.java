@@ -12,6 +12,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class OutputUtils {
@@ -25,8 +26,10 @@ public class OutputUtils {
             outputFile.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(outputFile, true);
 
-            wordCountMapList.forEach(tmpMap -> {
-                tmpMap.forEach((word, count) -> {
+            for (HashMap<String, Integer> tmpMap:wordCountMapList) {
+                for (Map.Entry<String, Integer> entry:tmpMap.entrySet()) {
+                    String word = entry.getKey();
+                    Integer count = entry.getValue();
                     int docId = DocIdCounter.getDocId();
                     String stringData = word + "\t" + String.valueOf(docId) + "\t" + count + "\n";
                     byte[] byteData = stringData.getBytes();
@@ -36,8 +39,8 @@ public class OutputUtils {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                });
-            });
+                }
+            }
 
             outputStream.close();
         } catch (IOException e) {
@@ -53,16 +56,18 @@ public class OutputUtils {
             outpuFile.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(outpuFile, true);
 
-            lexiconMap.forEach((word, lexiconTuple) -> {
+            for (Map.Entry<String, LexiconWordTuple> entry:lexiconMap.entrySet()) {
+                String word = entry.getKey();
+                LexiconWordTuple lexiconTuple = entry.getValue();
                 String stringData = word + "," + lexiconTuple.startByte + "," + lexiconTuple.endByte + "," + lexiconTuple.numOfDoc + "\n";
                 byte[] byteData = stringData.getBytes();
 
-            try {
-                outputStream.write(byteData);
-            } catch (IOException e){
-                //
+                try {
+                    outputStream.write(byteData);
+                } catch (IOException e){
+                    //
+                }
             }
-            });
 
             outputStream.close();
         } catch (IOException e) {

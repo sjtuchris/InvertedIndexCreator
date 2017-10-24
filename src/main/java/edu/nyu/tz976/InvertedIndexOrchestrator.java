@@ -25,13 +25,13 @@ public class InvertedIndexOrchestrator {
         List<Path> pathList = wetFileList("./input");
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(1);
+            ExecutorService executor = Executors.newFixedThreadPool(4);
             CountDownLatch countDownLatch = new CountDownLatch(pathList.size());
 
-            pathList.forEach(path -> {
+            for (Path path:pathList) {
                 Runnable runnable = () -> {
                     WetReader wetReader = new WetReader();
-                    DocProcessor docProcessor = new DocProcessor();
+//                    DocProcessor docProcessor = new DocProcessor();
 
                     String fileName = path.getFileName().toString();
                     LOGGER.info("Starting to load " + fileName);
@@ -39,19 +39,19 @@ public class InvertedIndexOrchestrator {
                     LOGGER.info("Wet data " + fileName + " loaded!");
 
                     // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-                    LOGGER.info("Processing " + fileName);
-                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
-                    LOGGER.info("Process " + fileName + " complete!");
+//                    LOGGER.info("Processing " + fileName);
+//                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
+//                    LOGGER.info("Process " + fileName + " complete!");
 
                     // Write out temp postings
                     LOGGER.info("Generating tempPostings for " + fileName);
-                    OutputUtils.writeIntermediatePostings(docProcessor.wordCountMapList, fileName);
+                    OutputUtils.writeIntermediatePostings(wetReader.wordCountMapList, fileName);
 
                     LOGGER.info("Postings generated!");
                     countDownLatch.countDown();
                 };
                 executor.execute(runnable);
-            });
+            }
 
             executor.shutdown();
 

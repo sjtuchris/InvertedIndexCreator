@@ -77,7 +77,7 @@ public class IndexGenerator {
         // Count the byte location while writing to inverted index list
         startByte = endByte + 1;
 
-        docFreqParList.forEach(docFreqPair -> {
+        for (Entry<String, String> docFreqPair:docFreqParList) {
             try {
                 byte[] byteData = compressDocFreqPair(docFreqPair.getKey(), docFreqPair.getValue());
 
@@ -87,7 +87,7 @@ public class IndexGenerator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }
 
     }
 
