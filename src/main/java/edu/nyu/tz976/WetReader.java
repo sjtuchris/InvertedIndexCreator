@@ -6,15 +6,12 @@ import com.google.common.collect.Maps;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class WetReader {
-    public List<List<String>> fileContentList = Lists.newArrayList();
-    public List<List<String>> fileHeaderList = Lists.newArrayList();
-    public List<HashMap<String, Integer>> wordCountMapList = Lists.newArrayList();
+//    public List<HashMap<String, Integer>> wordCountMapList = Lists.newArrayList();
+    public List<WordCountMap> wordCountMapList = Lists.newArrayList();
     public List<List<String>> pageUrlList = Lists.newArrayList();
 
     public void loadWetData(Path path) {
@@ -37,9 +34,10 @@ public class WetReader {
                     // Before go to the next doc, process the current doc first
                     // New doc if previous line is content
                     if(contentType.equals("Content")) {
-
-                        processDocData(contentList, headerList);
-                        PageUrlTable.appendPageUrlList(pageUrlList);
+                        int docId = DocIdCounter.getDocId();
+                        if (processDocData(contentList, headerList, docId)) {
+                            PageUrlTable.appendPageUrlList(pageUrlList);
+                        }
 
                         contentList = Lists.newArrayList();
                         headerList = Lists.newArrayList();
@@ -78,24 +76,31 @@ public class WetReader {
         return "Pass";
     }
 
-    private void processDocData (List<String> contentLines, List<String> headerLines) {
+    private Boolean processDocData (List<String> contentLines, List<String> headerLines, int docId) {
 
         // Count term frequency in one doc
-        HashMap<String, Integer> wordCountMap = getWordCountMap(contentLines);
-        wordCountMapList.add(wordCountMap);
+        WordCountMap wordCountMap = new WordCountMap(docId, getWordCountMap(contentLines));
 
-        // Map url and termNum for each doc
-        List<String> pageUrlTermNumTuple = pageUrlMapper(headerLines, wordCountMap.size());
-        pageUrlList.add(pageUrlTermNumTuple);
+        // Filter those pages that are not ascii format
+        if (wordCountMap.map.size() != 0) {
+            wordCountMapList.add(wordCountMap);
+
+            // Map url and termNum for each doc
+            List<String> pageUrlTermNumTuple = pageUrlMapper(headerLines, wordCountMap.map.size(), docId);
+            pageUrlList.add(pageUrlTermNumTuple);
+            return true;
+        }
+        return false;
     }
 
-    private List<String> pageUrlMapper(List<String> headerLines, int wordCountMapSize) {
+    private List<String> pageUrlMapper(List<String> headerLines, int wordCountMapSize, int docId) {
         List<String> urlTermNumTuple = Lists.newArrayList();
         for (String headerLine:headerLines) {
             String[] lineParts = headerLine.split(" ");
             if (lineParts[0].equals("WARC-Target-URI:")) {
                 String url = lineParts[1];
                 String termNum = String.valueOf(wordCountMapSize);
+                urlTermNumTuple.add(String.valueOf(docId));
                 urlTermNumTuple.add(termNum);
                 urlTermNumTuple.add(url);
             }

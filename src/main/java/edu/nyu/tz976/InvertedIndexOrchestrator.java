@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 public class InvertedIndexOrchestrator {
 
     private static final Logger LOGGER = LogManager.getLogger(InvertedIndexOrchestrator.class);
-
+    CountDownLatch countDownLatch;
     public void test() {
         cleanHistoryFiles();
 
@@ -25,32 +25,13 @@ public class InvertedIndexOrchestrator {
         List<Path> pathList = wetFileList("./input");
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(4);
-            CountDownLatch countDownLatch = new CountDownLatch(pathList.size());
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            countDownLatch = new CountDownLatch(pathList.size());
 
             for (Path path:pathList) {
-                Runnable runnable = () -> {
-                    WetReader wetReader = new WetReader();
-//                    DocProcessor docProcessor = new DocProcessor();
-
-                    String fileName = path.getFileName().toString();
-                    LOGGER.info("Starting to load " + fileName);
-                    wetReader.loadWetData(path);
-                    LOGGER.info("Wet data " + fileName + " loaded!");
-
-                    // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-//                    LOGGER.info("Processing " + fileName);
-//                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
-//                    LOGGER.info("Process " + fileName + " complete!");
-
-                    // Write out temp postings
-                    LOGGER.info("Generating tempPostings for " + fileName);
-                    OutputUtils.writeIntermediatePostings(wetReader.wordCountMapList, fileName);
-
-                    LOGGER.info("Postings generated!");
-                    countDownLatch.countDown();
-                };
+                Runnable runnable = new MyRunnable<>(path);
                 executor.execute(runnable);
+
             }
 
             executor.shutdown();
@@ -132,5 +113,35 @@ public class InvertedIndexOrchestrator {
             }
         }
         return pathList;
+    }
+
+    private class MyRunnable<T> implements Runnable{
+        private Path path;
+
+        public MyRunnable(Path t) {
+            this.path = t;
+        }
+
+        public void run() {
+            WetReader wetReader = new WetReader();
+            //                    DocProcessor docProcessor = new DocProcessor();
+
+            String fileName = path.getFileName().toString();
+            LOGGER.info("Starting to load " + fileName);
+            wetReader.loadWetData(path);
+            LOGGER.info("Wet data " + fileName + " loaded!");
+
+            // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
+            //                    LOGGER.info("Processing " + fileName);
+            //                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
+            //                    LOGGER.info("Process " + fileName + " complete!");
+
+            // Write out temp postings
+            LOGGER.info("Generating tempPostings for " + fileName);
+            OutputUtils.writeIntermediatePostings(wetReader.wordCountMapList, fileName);
+
+            LOGGER.info("Postings generated!");
+            countDownLatch.countDown();
+        }
     }
 }

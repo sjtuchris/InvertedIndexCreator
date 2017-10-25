@@ -1,6 +1,7 @@
 package edu.nyu.tz976;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,11 +14,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 public class OutputUtils {
 
-    public static void writeIntermediatePostings(List<HashMap<String, Integer>> wordCountMapList, String fileName) {
+    public static void writeIntermediatePostings(List<WordCountMap> wordCountMapList, String fileName) {
 
         Path file = Paths.get("./output/Postings_" + fileName + ".txt");
         File outputFile = file.toFile();
@@ -26,12 +26,12 @@ public class OutputUtils {
             outputFile.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(outputFile, true);
 
-            for (HashMap<String, Integer> tmpMap:wordCountMapList) {
-                for (Map.Entry<String, Integer> entry:tmpMap.entrySet()) {
+            for (WordCountMap tmpMap:wordCountMapList) {
+                for (Map.Entry<String, Integer> entry:tmpMap.map.entrySet()) {
                     String word = entry.getKey();
                     Integer count = entry.getValue();
                     int docId = DocIdCounter.getDocId();
-                    String stringData = word + "\t" + String.valueOf(docId) + "\t" + count + "\n";
+                    String stringData = word + "\t" + String.valueOf(tmpMap.docId) + "\t" + count + "\n";
                     byte[] byteData = stringData.getBytes();
 
                     try {
@@ -81,24 +81,23 @@ public class OutputUtils {
         int counter = 0;
 
         for(int idx = 0; idx < pageUrlTable.size(); idx++) {
-            String list = String.join(" ", pageUrlTable.get(idx));
+            String list = StringUtils.join(pageUrlTable.get(idx), " ");
+
             if (list.length() == 0) {
                 continue;
             }
 
-            // Filter those pages that are not ascii format
-            if (list.charAt(0) != '0') {
-                String stringData = String.valueOf(idx) + " " + list + "\n";
-                byte[] byteData = stringData.getBytes();
-                try {
-                    Files.write(file, byteData, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            String stringData = list + "\n";
+            byte[] byteData = stringData.getBytes();
+            try {
+                Files.write(file, byteData, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
-                    counter++;
+                counter++;
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
         }
 
         System.out.println(counter);
