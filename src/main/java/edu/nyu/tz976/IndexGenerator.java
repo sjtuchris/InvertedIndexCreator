@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,7 +16,7 @@ import java.util.Map.Entry;
 public class IndexGenerator {
     private BufferedOutputStream invertedIndexOutStream;
     private BufferedReader sortedPostingsInStream;
-    private HashMap<String, LexiconWordTuple> lexiconMap = Maps.newHashMap();
+    private HashMap<String, LexiconWordTuple> lexiconMap = new HashMap<>();
     private long startByte = 0;
     private long endByte = -1;
 
@@ -27,7 +28,7 @@ public class IndexGenerator {
         File postingsFile = sortedPostingsPath.toFile();
 
         String wordFlag = null;
-        List<Entry<String, String>> docFreqPairList = Lists.newArrayList();
+        List<Entry<String, String>> docFreqPairList = new ArrayList<>();
 
 
         try {
@@ -55,7 +56,7 @@ public class IndexGenerator {
                         LexiconWordTuple lexiconTuple = new LexiconWordTuple(String.valueOf(startByte), String.valueOf(endByte), String.valueOf(docFreqPairList.size()));
                         lexiconMap.put(wordFlag, lexiconTuple);
 
-                        docFreqPairList = Lists.newArrayList();
+                        docFreqPairList = new ArrayList<>();
                         wordFlag = postingSplit[0];
                     }
                     docFreqPairList.add(docFreqPair);
@@ -93,7 +94,7 @@ public class IndexGenerator {
 
     // Store (DOC_ID, frequency) pair into an Integer list and compress
     private byte[] compressDocFreqPair(String docId, String frequency) {
-        List<Integer> docFreqPair = Lists.newArrayList();
+        List<Integer> docFreqPair = new ArrayList<>();
         docFreqPair.add(Integer.valueOf(docId));
         docFreqPair.add(Integer.valueOf(frequency));
 

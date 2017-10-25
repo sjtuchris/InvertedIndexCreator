@@ -6,17 +6,18 @@ import com.google.common.collect.Maps;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class WetReader {
 //    public List<HashMap<String, Integer>> wordCountMapList = Lists.newArrayList();
-    public List<WordCountMap> wordCountMapList = Lists.newArrayList();
-    public List<List<String>> pageUrlList = Lists.newArrayList();
+    public List<WordCountMap> wordCountMapList = new ArrayList<>();
+    public List<List<String>> pageUrlList = new ArrayList<>();
 
     public void loadWetData(Path path) {
-        List<String> contentList = Lists.newArrayList();
-        List<String> headerList = Lists.newArrayList();
+        List<String> contentList = new ArrayList<>();
+        List<String> headerList = new ArrayList<>();
 
         BufferedReader reader = null;
 
@@ -39,9 +40,9 @@ public class WetReader {
                             PageUrlTable.appendPageUrlList(pageUrlList);
                         }
 
-                        contentList = Lists.newArrayList();
-                        headerList = Lists.newArrayList();
-                        pageUrlList = Lists.newArrayList();
+                        contentList = new ArrayList<>();
+                        headerList = new ArrayList<>();
+                        pageUrlList = new ArrayList<>();
                     }
                     contentType = "Header";
 
@@ -94,7 +95,7 @@ public class WetReader {
     }
 
     private List<String> pageUrlMapper(List<String> headerLines, int wordCountMapSize, int docId) {
-        List<String> urlTermNumTuple = Lists.newArrayList();
+        List<String> urlTermNumTuple = new ArrayList<>();
         for (String headerLine:headerLines) {
             String[] lineParts = headerLine.split(" ");
             if (lineParts[0].equals("WARC-Target-URI:")) {
@@ -109,7 +110,7 @@ public class WetReader {
     }
 
     private HashMap<String, Integer> getWordCountMap(List<String> docLines) {
-        HashMap<String, Integer> wordCountMap = Maps.newHashMap();
+        HashMap<String, Integer> wordCountMap = new HashMap<>();
         for (String line:docLines) {
             if (isAscii(line)) {
                 String regex = "([^a-zA-Z0-9']+)'*\\1*";

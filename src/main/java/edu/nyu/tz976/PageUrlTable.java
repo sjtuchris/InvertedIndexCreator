@@ -2,10 +2,11 @@ package edu.nyu.tz976;
 
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PageUrlTable {
-    public static volatile List<List<String>> PAGE_URL_TABLE = Lists.newArrayList();
+    public static volatile List<List<String>> PAGE_URL_TABLE = new ArrayList<>();
 
     public static synchronized void appendPageUrlTuple(List<String> pageUrlTuple) {
         PAGE_URL_TABLE.add(pageUrlTuple);
