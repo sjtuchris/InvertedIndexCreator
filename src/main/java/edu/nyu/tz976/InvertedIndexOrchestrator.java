@@ -1,6 +1,5 @@
 package edu.nyu.tz976;
 
-import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -105,7 +105,7 @@ public class InvertedIndexOrchestrator {
     }
 
     private List<Path> wetFileList(String directory) {
-        List<Path> pathList = Lists.newArrayList();
+        List<Path> pathList = new ArrayList<>();
         File dir = new File(directory);
         for (File file : dir.listFiles()) {
             if (file.getName().endsWith((".wet"))) {
