@@ -1,6 +1,6 @@
 package edu.nyu.tz976;
 
-import com.google.common.base.CharMatcher;
+//import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -131,8 +131,11 @@ public class WetReader {
        return wordCountMap;
     }
 
+//    private boolean isAscii(String line) {
+//        return CharMatcher.ascii().matchesAllOf(line);
+//    }
     private boolean isAscii(String line) {
-        return CharMatcher.ascii().matchesAllOf(line);
+        return line.matches("\\A\\p{ASCII}*\\z");
     }
 
 }
