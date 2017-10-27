@@ -96,10 +96,11 @@ public class WetReader {
             String[] lineParts = headerLine.split(" ");
             if (lineParts[0].equals("WARC-Target-URI:")) {
                 String url = lineParts[1];
-                String termNum = String.valueOf(wordCountMapSize);
                 urlTermNumTuple.add(String.valueOf(docId));
-                urlTermNumTuple.add(termNum);
                 urlTermNumTuple.add(url);
+            } else if (lineParts[0].equals("Content-Length:")) {
+                String termNum = lineParts[1];
+                urlTermNumTuple.add(termNum);
             }
         }
         return urlTermNumTuple;
