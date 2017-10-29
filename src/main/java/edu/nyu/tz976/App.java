@@ -8,7 +8,7 @@ public class App
         InvertedIndexOrchestrator invertedIndexOrchestrator = new InvertedIndexOrchestrator();
         invertedIndexOrchestrator.test();
 //        InvertedListSeeker seeker = new InvertedListSeeker();
-//        seeker.seekWord();
+//        seeker.metaTest();
 //        Test test = new Test();
 //        test.test();
     }
