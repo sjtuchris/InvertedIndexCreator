@@ -42,6 +42,7 @@ public class Compressor {
                 n = 0;
             }
         }
+//        return numbers;
         return Compressor.decompressIntegerList(numbers);
     }
 
@@ -81,7 +82,7 @@ public class Compressor {
             if (i == 0) {
                 outList.add(inList.get(i));
             } else {
-                outList.add(inList.get(i) + inList.get(i-1));
+                outList.add(inList.get(i) + outList.get(i-1));
             }
         }
         return outList;

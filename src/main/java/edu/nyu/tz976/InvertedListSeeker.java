@@ -41,18 +41,33 @@ public class InvertedListSeeker {
              fileStore.readFully(record, 0, 4);
 
             int docIdListLength = Compressor.byteArrayToInt(record);
+            System.out.println(docIdListLength);
 
             fileStore.seek(start+4);
             fileStore.readFully(record, 0, 4);
 
             int sizeListLength = Compressor.byteArrayToInt(record);
+            System.out.println(sizeListLength);
 
-            record = new byte[docIdListLength+1];
+            record = new byte[docIdListLength];
             fileStore.seek(start+8);
             fileStore.readFully(record, 0, docIdListLength);
 
             showDecode(record);
-             fileStore.close();
+
+            record = new byte[sizeListLength];
+            fileStore.seek(start+8+docIdListLength);
+            fileStore.readFully(record, 0, sizeListLength);
+            List<Integer> sizeList = Compressor.varByteDecode(record);
+
+
+            record = new byte[sizeList.get(4)];
+            fileStore.seek(start+8+docIdListLength+sizeListLength);
+            fileStore.readFully(record, 0, sizeList.get(0));
+            List<Integer> list = Compressor.varByteDecode(record);
+            System.out.println(list.get(list.size()-1));
+
+            fileStore.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,5 +79,6 @@ public class InvertedListSeeker {
             System.out.print(i);
             System.out.print(" ");
         }
+        System.out.println();
     }
 }

@@ -100,7 +100,9 @@ public class IndexGenerator {
 
                 // Meta part
                 lastChunkDocIdList.add(lastDocId);
-                chunkSizeList.add(chunkDocIdListData.length + chunkFreqListData.length);
+                // In chunkSizeList, for each chunk, it occupies two elements, one for docList, one for freqList
+                chunkSizeList.add(chunkDocIdListData.length);
+                chunkSizeList.add(chunkFreqListData.length);
 
                 // Reset for next chunk
                 chunkDocIdList = new ArrayList<>();
@@ -129,6 +131,8 @@ public class IndexGenerator {
     private void writeInvertedIndex(byte[] blockData, List<Integer> lastChunkDocIdList, List<Integer> chunkSizeList) {
         // Count the byte location while writing to inverted index list
         startByte = endByte + 1;
+
+        System.out.println(lastChunkDocIdList.size());
 
         byte[] lastChunkDocId = Compressor.varByteEncode(lastChunkDocIdList);
         byte[] chunkSize = Compressor.varByteEncode(chunkSizeList);
