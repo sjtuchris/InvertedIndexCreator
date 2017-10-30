@@ -132,8 +132,6 @@ public class IndexGenerator {
         // Count the byte location while writing to inverted index list
         startByte = endByte + 1;
 
-        System.out.println(lastChunkDocIdList.size());
-
         byte[] lastChunkDocId = Compressor.varByteEncode(lastChunkDocIdList);
         byte[] chunkSize = Compressor.varByteEncode(chunkSizeList);
 

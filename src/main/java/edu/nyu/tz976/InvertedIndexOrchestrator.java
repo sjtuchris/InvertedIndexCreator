@@ -17,7 +17,7 @@ public class InvertedIndexOrchestrator {
 
     private static final Logger LOGGER = LogManager.getLogger(InvertedIndexOrchestrator.class);
     CountDownLatch countDownLatch;
-    public void test() {
+    public void createInvertedIndexList() {
         cleanHistoryFiles();
 
         IndexGenerator indexGenerator = new IndexGenerator();
@@ -25,7 +25,7 @@ public class InvertedIndexOrchestrator {
         List<Path> pathList = wetFileList("./input");
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(2);
+            ExecutorService executor = Executors.newFixedThreadPool(8);
             countDownLatch = new CountDownLatch(pathList.size());
 
             for (Path path:pathList) {

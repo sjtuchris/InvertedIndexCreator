@@ -29,7 +29,6 @@ public class OutputUtils {
                 for (Map.Entry<String, Integer> entry:tmpMap.map.entrySet()) {
                     String word = entry.getKey();
                     Integer count = entry.getValue();
-                    int docId = DocIdCounter.getDocId();
                     String stringData = word + "\t" + String.valueOf(tmpMap.docId) + "\t" + count + "\n";
                     byte[] byteData = stringData.getBytes();
 
@@ -55,6 +54,14 @@ public class OutputUtils {
             outpuFile.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(outpuFile, true);
 
+            // Write total doc numbers at the first line of lexicon
+            try {
+                byte[] totalDoc = (Integer.toString(DocIdCounter.DOC_ID)+"\n").getBytes();
+                outputStream.write(totalDoc);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             for (Map.Entry<String, LexiconWordTuple> entry:lexiconMap.entrySet()) {
                 String word = entry.getKey();
                 LexiconWordTuple lexiconTuple = entry.getValue();
@@ -64,7 +71,7 @@ public class OutputUtils {
                 try {
                     outputStream.write(byteData);
                 } catch (IOException e){
-                    //
+                    e.printStackTrace();
                 }
             }
 
