@@ -38,21 +38,27 @@ public class QueryProcessOrchestrator {
         // Execute query
         LOGGER.info("Executing query...");
         QueryProcessor queryProcessor = new QueryProcessor();
-        if (semanticsFlag.equals("AND")) {
-            queryProcessor.processANDQuery(metaList, totalDocNum, pageUrlTableLoader);
-        } else {
-            queryProcessor.processORQuery(metaList, totalDocNum, pageUrlTableLoader);
-        }
 
-        // Reverse the order based on BM25 value
-        PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
-        while (!queryProcessor.docIdBmValueQueue.isEmpty()) {
-            DocIdWithBmValue pair = queryProcessor.docIdBmValueQueue.poll();
-            outQueue.add(pair);
-        }
-        while (!outQueue.isEmpty()) {
-            DocIdWithBmValue pair = outQueue.poll();
-            System.out.println(String.valueOf(pair.docId)+" "+String.valueOf(pair.bmValue)+" "+Arrays.toString(pair.freq));
+        // No doc that contains all the keywords for AND query, return false
+        if (metaList.size() != inputWords.size() && semanticsFlag.equals("AND")){
+            System.out.println("Cannot find any result, try OR query.");
+        } else {
+            if (semanticsFlag.equals("AND")) {
+                queryProcessor.processANDQuery(metaList, totalDocNum, pageUrlTableLoader);
+            } else {
+                queryProcessor.processORQuery(metaList, totalDocNum, pageUrlTableLoader);
+            }
+
+            // Reverse the order based on BM25 value
+            PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
+            while (!queryProcessor.docIdBmValueQueue.isEmpty()) {
+                DocIdWithBmValue pair = queryProcessor.docIdBmValueQueue.poll();
+                outQueue.add(pair);
+            }
+            while (!outQueue.isEmpty()) {
+                DocIdWithBmValue pair = outQueue.poll();
+                System.out.println(String.valueOf(pair.docId) + " " + String.valueOf(pair.bmValue) + " " + Arrays.toString(pair.freq));
+            }
         }
     }
 
@@ -91,10 +97,13 @@ public class QueryProcessOrchestrator {
         for (int i=0; i<inputWords.size(); i++) {
             String word = inputWords.get(i);
             LexiconWordTuple tuple = lexicon.get(word);
-            InvertedIndexMeta meta = DAATUtils.loadInvertedIndexMeta(Long.valueOf(tuple.startByte));
-            meta.lexiconWordTuple = tuple;
-            meta.word = word;
-            metaQueue.add(meta);
+
+            if (tuple != null) {
+                InvertedIndexMeta meta = DAATUtils.loadInvertedIndexMeta(Long.valueOf(tuple.startByte));
+                meta.lexiconWordTuple = tuple;
+                meta.word = word;
+                metaQueue.add(meta);
+            }
         }
 
         return metaQueue;
