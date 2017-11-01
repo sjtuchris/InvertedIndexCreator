@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
 import java.util.List;
 
 public class DAATUtils {
-    final static String invertedIndexFile = "./output/invertedIndex.txt";
+    private final static String invertedIndexFile = "./output/invertedIndex.txt";
 
     public static InvertedIndexMeta loadInvertedIndexMeta(long startByte) {
         InvertedIndexMeta meta = new InvertedIndexMeta();

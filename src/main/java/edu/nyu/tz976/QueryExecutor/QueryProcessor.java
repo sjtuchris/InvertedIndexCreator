@@ -2,31 +2,73 @@ package edu.nyu.tz976.QueryExecutor;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class QueryProcessor {
-    public void processQuery(PriorityQueue<InvertedIndexMeta> metaQueue) {
-        List<InvertedIndexMeta> metaList = new ArrayList<>();
+    public PriorityQueue<DocIdWithBmValue> docIdBmValueQueue;
+
+    private int[] freqOffsetArray;
+    private int[] lastDocIdIdxArray;
+    private int[] docIdIdxArray;
+
+    public void processQuery(List<InvertedIndexMeta> metaList, int totalDocNum, PageUrlTableLoader pageUrlTableLoader) {
+        Comparator<DocIdWithBmValue> bmValueComparator = new BMValueComparatorReverse();
+        docIdBmValueQueue = new PriorityQueue<DocIdWithBmValue>(11, bmValueComparator);
 
         // Open each inverted list
-        metaList = openList(metaQueue);
+        metaList = openList(metaList);
+        freqOffsetArray = new int[metaList.size()];
+        lastDocIdIdxArray = new int[metaList.size()];
+        docIdIdxArray = new int[metaList.size()];
 
         int did = 0;
         int maxId = getMaxId(metaList.get(0));
 
         while (did <= maxId) {
-            did = nextGEQ(metaList.get(0), did);
+            // First list, get next docId
+            did = nextGEQ(metaList.get(0), did, 0);
+            int tempId = did;
+
+
+            // Skip this part if we only have one keyword
+            if (metaList.size() > 1) {
+                for (int i=1; i<metaList.size(); i++) {
+                    tempId = nextGEQ(metaList.get(i), did, i);
+                    if (tempId != did) break;
+                }
+            }
+
+//            System.out.println(tempId);
+
+            if (tempId > did) {
+                did = tempId;
+            } else {
+                int[] freq = new int[metaList.size()];
+                for (int i=0; i<metaList.size(); i++) {
+                    freq[i] = getFreq(metaList.get(i), did, i);
+                }
+                double bmValue = BMCalculator.getBMValue(totalDocNum, metaList, freq,
+                        Integer.valueOf(pageUrlTableLoader.pageUrlTable.get(String.valueOf(did)).get(1)),
+                        pageUrlTableLoader.avgLength);
+
+                // Maintain the queue size no more than 10
+                docIdBmValueQueue.add(new DocIdWithBmValue(did, bmValue, freq));
+                if (docIdBmValueQueue.size() > 10) {
+                    docIdBmValueQueue.poll();
+                }
+
+                did++;
+            }
+
         }
+        closeList(metaList);
     }
 
-    private List<InvertedIndexMeta> openList(PriorityQueue<InvertedIndexMeta> metaQueue) {
+    private List<InvertedIndexMeta> openList(List<InvertedIndexMeta> list) {
         String fileName = "./output/invertedIndex.txt";
         List<InvertedIndexMeta> metaList = new ArrayList<>();
-        while (!metaQueue.isEmpty()) {
+        for (InvertedIndexMeta meta:list) {
             try {
-                InvertedIndexMeta meta = metaQueue.poll();
                 meta.accessFile = new RandomAccessFile(fileName, "rw");
                 metaList.add(meta);
             } catch (IOException e) {
@@ -46,7 +88,7 @@ public class QueryProcessor {
         }
     }
 
-    private int nextGEQ(InvertedIndexMeta meta, int did) {
+    private int nextGEQ(InvertedIndexMeta meta, int did, int termId) {
         if (did > meta.lastDocIdList.get(meta.lastDocIdList.size()-1)) return -1;
 
         int lastDocIdIdx;
@@ -64,22 +106,70 @@ public class QueryProcessor {
         }
 
         List<Integer> chunkDocIdList = DAATUtils.retrieveDataFromInvertedIndex(
-                Long.getLong(meta.lexiconWordTuple.startByte)+8+meta.lastDocIdListLength+meta.sizeListLength+offSet,
+                Long.valueOf(meta.lexiconWordTuple.startByte)+8+meta.lastDocIdListLength+meta.sizeListLength+offSet,
                 meta.docIdAndFreqSizeList.get(lastDocIdIdx*2),
                 meta.accessFile);
 
-        for (int docId:chunkDocIdList) {
+        offSet += meta.docIdAndFreqSizeList.get(lastDocIdIdx*2);
+        freqOffsetArray[termId] = offSet;
+        lastDocIdIdxArray[termId] = lastDocIdIdx;
+
+
+        for (int i=0; i<chunkDocIdList.size(); i++) {
+            int docId = chunkDocIdList.get(i);
             if (docId >= did) {
+                docIdIdxArray[termId] = i;
                 return docId;
             }
         }
-
         return -1;
     }
 
+    private int getFreq(InvertedIndexMeta meta, int did, int termId) {
+        int offSet = freqOffsetArray[termId];
+        int lastDocIdIdx = lastDocIdIdxArray[termId];
+        int idx = docIdIdxArray[termId];
+
+        List<Integer> chunkFreqList = DAATUtils.retrieveDataFromInvertedIndex(
+                Long.valueOf(meta.lexiconWordTuple.startByte)+8+meta.lastDocIdListLength+meta.sizeListLength+offSet,
+                meta.docIdAndFreqSizeList.get(lastDocIdIdx*2+1),
+                meta.accessFile);
+
+        return chunkFreqList.get(idx);
+    }
 
     private int getMaxId(InvertedIndexMeta meta) {
         List<Integer> list = meta.lastDocIdList;
         return list.get(list.size()-1);
     }
+
+//    public class DocIdWithBmValue {
+//        int docId;
+//        double bmValue;
+//        int[] freq;
+//
+//        DocIdWithBmValue(int docId, double bmValue, int[] freq) {
+//            this.docId = docId;
+//            this.bmValue = bmValue;
+//            this.freq = freq;
+//        }
+//    }
+
+    // docId with larger bmValue first
+//    public class BmValueComparator implements Comparator<DocIdWithBmValue>
+//    {
+//        @Override
+//        public int compare(DocIdWithBmValue x, DocIdWithBmValue y)
+//        {
+//            if (x.bmValue > y.bmValue)
+//            {
+//                return -1;
+//            }
+//            if (x.bmValue < y.bmValue)
+//            {
+//                return 1;
+//            }
+//            return 0;
+//        }
+//    }
 }

@@ -14,9 +14,9 @@ import java.util.concurrent.*;
 
 
 public class InvertedIndexOrchestrator {
-
     private static final Logger LOGGER = LogManager.getLogger(InvertedIndexOrchestrator.class);
     CountDownLatch countDownLatch;
+
     public void createInvertedIndexList() {
         cleanHistoryFiles();
 

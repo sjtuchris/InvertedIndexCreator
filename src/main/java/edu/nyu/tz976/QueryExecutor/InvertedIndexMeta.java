@@ -9,6 +9,7 @@ public class InvertedIndexMeta {
     int lastDocIdListLength;
     int sizeListLength;
     String word;
+    String numOfDocContainTerm;
     List<Integer> lastDocIdList;
     List<Integer> docIdAndFreqSizeList;
     LexiconWordTuple lexiconWordTuple;

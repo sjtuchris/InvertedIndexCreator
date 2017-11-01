@@ -1,25 +1,63 @@
 package edu.nyu.tz976.QueryExecutor;
 
 import edu.nyu.tz976.LexiconWordTuple;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class QueryProcessOrchestrator {
     public HashMap<String, LexiconWordTuple> lexicon = new HashMap<>();
 
+    private static final Logger LOGGER = LogManager.getLogger(QueryProcessOrchestrator.class);
+
     public void executeQuery() {
         // Load lexicon
+        LOGGER.info("Loading lexicon...");
         LexiconLoader lexiconLoader = new LexiconLoader();
         lexiconLoader.loadLexicon();
         lexicon = lexiconLoader.lexiconMap;
-        int maxId = Integer.valueOf(lexiconLoader.totalDocNum);
+        int totalDocNum = Integer.valueOf(lexiconLoader.totalDocNum);
+        LOGGER.info("Lexicon loaded!");
+
+        LOGGER.info("Loading pageUrlTable...");
+        PageUrlTableLoader pageUrlTableLoader = new PageUrlTableLoader();
+        pageUrlTableLoader.loadPageUrlTable();
+        LOGGER.info("PageUrlTable loaded!");
 
         // Input keyword for search
         List<String> inputWords = handleInput();
 
         // Load meta for those keywords. Priority: keyword with shortest inverted index list first
+        LOGGER.info("Loading metadata...");
         PriorityQueue<InvertedIndexMeta> metaQueue = constructMetaQueue(inputWords);
+        List<InvertedIndexMeta> metaList = queueToList(metaQueue);
+        metaList = assignNumberOfDocContainTerm(metaList);
 
+        // Execute query
+        LOGGER.info("Executing query...");
+        QueryProcessor queryProcessor = new QueryProcessor();
+        queryProcessor.processQuery(metaList, totalDocNum, pageUrlTableLoader);
+
+        // Reverse the order based on BM25 value
+        PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
+        while (!queryProcessor.docIdBmValueQueue.isEmpty()) {
+            DocIdWithBmValue pair = queryProcessor.docIdBmValueQueue.poll();
+            outQueue.add(pair);
+        }
+        while (!outQueue.isEmpty()) {
+            DocIdWithBmValue pair = outQueue.poll();
+            System.out.println(String.valueOf(pair.docId)+" "+String.valueOf(pair.bmValue)+" "+Arrays.toString(pair.freq));
+        }
+    }
+
+    private List<InvertedIndexMeta> assignNumberOfDocContainTerm(List<InvertedIndexMeta> list) {
+        List<InvertedIndexMeta> metaList = new ArrayList<>();
+        for (InvertedIndexMeta meta:list) {
+            meta.numOfDocContainTerm = lexicon.get(meta.word).numOfDoc;
+            metaList.add(meta);
+        }
+        return metaList;
     }
 
     private List<String> handleInput() {
@@ -31,14 +69,14 @@ public class QueryProcessOrchestrator {
     }
 
     private PriorityQueue<InvertedIndexMeta> constructMetaQueue(List<String> inputWords) {
-        Comparator<InvertedIndexMeta> metaComparator = new chunkNumComparator();
+        Comparator<InvertedIndexMeta> metaComparator = new ChunkNumComparator();
         PriorityQueue<InvertedIndexMeta> metaQueue =
                 new PriorityQueue<InvertedIndexMeta>(inputWords.size(), metaComparator);
 
         for (int i=0; i<inputWords.size(); i++) {
             String word = inputWords.get(i);
             LexiconWordTuple tuple = lexicon.get(word);
-            InvertedIndexMeta meta = DAATUtils.loadInvertedIndexMeta(Long.getLong(tuple.startByte));
+            InvertedIndexMeta meta = DAATUtils.loadInvertedIndexMeta(Long.valueOf(tuple.startByte));
             meta.lexiconWordTuple = tuple;
             meta.word = word;
             metaQueue.add(meta);
@@ -47,8 +85,17 @@ public class QueryProcessOrchestrator {
         return metaQueue;
     }
 
+    private List<InvertedIndexMeta> queueToList(PriorityQueue<InvertedIndexMeta> queue) {
+        List<InvertedIndexMeta> metaList = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            InvertedIndexMeta meta = queue.poll();
+            metaList.add(meta);
+        }
+        return metaList;
+    }
+
     // Shorted list first
-    private class chunkNumComparator implements Comparator<InvertedIndexMeta>
+    private class ChunkNumComparator implements Comparator<InvertedIndexMeta>
     {
         @Override
         public int compare(InvertedIndexMeta x, InvertedIndexMeta y)

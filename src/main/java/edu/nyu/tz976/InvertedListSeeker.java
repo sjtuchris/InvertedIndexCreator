@@ -40,32 +40,43 @@ public class InvertedListSeeker {
             // reading String from RandomAccessFile
              fileStore.readFully(record, 0, 4);
 
+            // No.1 4 bytes
             int docIdListLength = Compressor.byteArrayToInt(record);
-            System.out.println(docIdListLength);
+//            System.out.println(docIdListLength);
 
             fileStore.seek(start+4);
             fileStore.readFully(record, 0, 4);
 
+            // No.2 4 bytes
             int sizeListLength = Compressor.byteArrayToInt(record);
-            System.out.println(sizeListLength);
+//            System.out.println(sizeListLength);
 
             record = new byte[docIdListLength];
             fileStore.seek(start+8);
             fileStore.readFully(record, 0, docIdListLength);
 
+            // No.3 last docId list
             showDecode(record);
 
             record = new byte[sizeListLength];
             fileStore.seek(start+8+docIdListLength);
             fileStore.readFully(record, 0, sizeListLength);
+
+            // No.4 size list
             List<Integer> sizeList = Compressor.varByteDecode(record);
+            showDecode(record);
 
-
-            record = new byte[sizeList.get(4)];
+            record = new byte[sizeList.get(0)];
             fileStore.seek(start+8+docIdListLength+sizeListLength);
             fileStore.readFully(record, 0, sizeList.get(0));
             List<Integer> list = Compressor.varByteDecode(record);
+            showDecode(record);
             System.out.println(list.get(list.size()-1));
+//
+//            record = new byte[sizeList.get(1)];
+//            fileStore.seek(start+8+docIdListLength+sizeListLength+sizeList.get(0));
+//            fileStore.readFully(record, 0, sizeList.get(1));
+//            showDecode(record);
 
             fileStore.close();
         } catch (IOException e) {

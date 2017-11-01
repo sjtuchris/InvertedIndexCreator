@@ -16,9 +16,9 @@ public class Compressor {
         return ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).getInt();
     }
 
-    public static byte[] varByteEncode(List<Integer> inList) {
+    public static byte[] varByteEncode(List<Integer> numbers) {
         // Compress the list first
-        List<Integer> numbers = Compressor.compressIntegerList(inList);
+//        List<Integer> numbers = Compressor.compressIntegerList(inList);
 
         ByteBuffer buf = ByteBuffer.allocate(numbers.size() * (Integer.SIZE / Byte.SIZE));
         for (Integer number : numbers) {
@@ -42,8 +42,8 @@ public class Compressor {
                 n = 0;
             }
         }
-//        return numbers;
-        return Compressor.decompressIntegerList(numbers);
+        return numbers;
+//        return Compressor.decompressIntegerList(numbers);
     }
 
     private static byte[] encodeNumber(int n) {
