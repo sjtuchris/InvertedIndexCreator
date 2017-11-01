@@ -14,6 +14,6 @@ public class App
         QueryProcessOrchestrator queryProcessOrchestrator = new QueryProcessOrchestrator();
         queryProcessOrchestrator.executeQuery();
 //        Test createInvertedIndexList = new Test();
-//        createInvertedIndexList.testSortedSet();
+//        createInvertedIndexList.testCompress();
     }
 }

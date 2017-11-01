@@ -62,7 +62,7 @@ public class Compressor {
     }
 
     // E.g. {1,3,5,8,12} -> {1,2,2,3,4}
-    private static List<Integer> compressIntegerList(List<Integer> inList) {
+    public static List<Integer> compressIntegerList(List<Integer> inList) {
         List<Integer> outList = new ArrayList<>();
 
         for (int i = 0; i < inList.size(); i++) {
@@ -75,7 +75,7 @@ public class Compressor {
         return outList;
     }
 
-    private static List<Integer> decompressIntegerList(List<Integer> inList) {
+    public static List<Integer> decompressIntegerList(List<Integer> inList) {
         List<Integer> outList = new ArrayList<>();
 
         for (int i = 0; i < inList.size(); i++) {

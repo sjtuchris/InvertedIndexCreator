@@ -8,6 +8,7 @@ import java.util.*;
 
 public class QueryProcessOrchestrator {
     public HashMap<String, LexiconWordTuple> lexicon = new HashMap<>();
+    public String semanticsFlag;
 
     private static final Logger LOGGER = LogManager.getLogger(QueryProcessOrchestrator.class);
 
@@ -37,7 +38,11 @@ public class QueryProcessOrchestrator {
         // Execute query
         LOGGER.info("Executing query...");
         QueryProcessor queryProcessor = new QueryProcessor();
-        queryProcessor.processQuery(metaList, totalDocNum, pageUrlTableLoader);
+        if (semanticsFlag.equals("AND")) {
+            queryProcessor.processANDQuery(metaList, totalDocNum, pageUrlTableLoader);
+        } else {
+            queryProcessor.processORQuery(metaList, totalDocNum, pageUrlTableLoader);
+        }
 
         // Reverse the order based on BM25 value
         PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
@@ -64,8 +69,18 @@ public class QueryProcessOrchestrator {
         Scanner reader = new Scanner(System.in);
         System.out.print("Input key words: ");
         System.out.println();
-        String[] result = reader.nextLine().split("\\s*(=>|,|\\s)\\s*");
-        return Arrays.asList(result);
+
+        String input = reader.nextLine();
+        //If contain "|", its semantics is OR
+        if (input.contains("|")) {
+            semanticsFlag = "OR";
+            String[] result = input.split("\\|");
+            return Arrays.asList(result);
+        } else {
+            semanticsFlag = "AND";
+            String[] result = input.split("\\s*(=>|,|\\s)\\s*");
+            return Arrays.asList(result);
+        }
     }
 
     private PriorityQueue<InvertedIndexMeta> constructMetaQueue(List<String> inputWords) {

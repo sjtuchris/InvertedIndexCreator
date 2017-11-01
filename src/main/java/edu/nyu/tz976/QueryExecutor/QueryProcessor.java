@@ -11,9 +11,8 @@ public class QueryProcessor {
     private int[] lastDocIdIdxArray;
     private int[] docIdIdxArray;
 
-    public void processQuery(List<InvertedIndexMeta> metaList, int totalDocNum, PageUrlTableLoader pageUrlTableLoader) {
-        Comparator<DocIdWithBmValue> bmValueComparator = new BMValueComparatorReverse();
-        docIdBmValueQueue = new PriorityQueue<DocIdWithBmValue>(11, bmValueComparator);
+    public void processANDQuery(List<InvertedIndexMeta> metaList, int totalDocNum, PageUrlTableLoader pageUrlTableLoader) {
+        docIdBmValueQueue = new PriorityQueue<DocIdWithBmValue>(11, new BMValueComparatorReverse());
 
         // Open each inverted list
         metaList = openList(metaList);
@@ -38,8 +37,6 @@ public class QueryProcessor {
                 }
             }
 
-//            System.out.println(tempId);
-
             if (tempId > did) {
                 did = tempId;
             } else {
@@ -62,6 +59,57 @@ public class QueryProcessor {
 
         }
         closeList(metaList);
+    }
+
+    public void processORQuery(List<InvertedIndexMeta> metaList, int totalDocNum, PageUrlTableLoader pageUrlTableLoader) {
+        docIdBmValueQueue = new PriorityQueue<DocIdWithBmValue>(11, new BMValueComparatorReverse());
+        HashMap<Integer, DocIdWithBmValue> docBmValueMap = new HashMap<>();
+
+        // Open each inverted list
+        metaList = openList(metaList);
+        freqOffsetArray = new int[metaList.size()];
+        lastDocIdIdxArray = new int[metaList.size()];
+        docIdIdxArray = new int[metaList.size()];
+
+        for (int term = 0; term<metaList.size(); term++) {
+            int did = 0;
+            int maxId = getMaxId(metaList.get(term));
+
+            while(did <= maxId) {
+                did = nextGEQ(metaList.get(term), did, term);
+
+                // If doc already visited, accumulate BMValue, otherwise create new entry
+                if(docBmValueMap.containsKey(did)) {
+                    DocIdWithBmValue oldObj = docBmValueMap.get(did);
+                    double bmValue = oldObj.bmValue;
+                    int[] freq = oldObj.freq;
+
+                    freq[term] = getFreq(metaList.get(term), did, term);
+                    bmValue += BMCalculator.getBMValue(totalDocNum, metaList, freq,
+                            Integer.valueOf(pageUrlTableLoader.pageUrlTable.get(String.valueOf(did)).get(1)),
+                            pageUrlTableLoader.avgLength);
+
+                    docBmValueMap.put(did, new DocIdWithBmValue(did, bmValue, freq));
+                } else {
+                    int[] freq = new int[metaList.size()];
+                    freq[term] = getFreq(metaList.get(term), did, term);
+                    double bmValue = BMCalculator.getBMValue(totalDocNum, metaList, freq,
+                            Integer.valueOf(pageUrlTableLoader.pageUrlTable.get(String.valueOf(did)).get(1)),
+                            pageUrlTableLoader.avgLength);
+                    docBmValueMap.put(did, new DocIdWithBmValue(did, bmValue, freq));
+                }
+
+                did++;
+            }
+        }
+        closeList(metaList);
+
+        for(DocIdWithBmValue obj:docBmValueMap.values()) {
+            docIdBmValueQueue.add(obj);
+            if (docIdBmValueQueue.size() > 10) {
+                docIdBmValueQueue.poll();
+            }
+        }
     }
 
     private List<InvertedIndexMeta> openList(List<InvertedIndexMeta> list) {
@@ -143,33 +191,4 @@ public class QueryProcessor {
         return list.get(list.size()-1);
     }
 
-//    public class DocIdWithBmValue {
-//        int docId;
-//        double bmValue;
-//        int[] freq;
-//
-//        DocIdWithBmValue(int docId, double bmValue, int[] freq) {
-//            this.docId = docId;
-//            this.bmValue = bmValue;
-//            this.freq = freq;
-//        }
-//    }
-
-    // docId with larger bmValue first
-//    public class BmValueComparator implements Comparator<DocIdWithBmValue>
-//    {
-//        @Override
-//        public int compare(DocIdWithBmValue x, DocIdWithBmValue y)
-//        {
-//            if (x.bmValue > y.bmValue)
-//            {
-//                return -1;
-//            }
-//            if (x.bmValue < y.bmValue)
-//            {
-//                return 1;
-//            }
-//            return 0;
-//        }
-//    }
 }
