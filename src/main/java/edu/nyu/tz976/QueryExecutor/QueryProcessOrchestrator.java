@@ -1,8 +1,13 @@
 package edu.nyu.tz976.QueryExecutor;
 
+import com.mongodb.client.MongoCollection;
 import edu.nyu.tz976.LexiconWordTuple;
+import edu.nyu.tz976.MongoDBUtils.MongoDBUtil;
+import edu.nyu.tz976.BackendServer.QueryResponse;
+import edu.nyu.tz976.SnippetGenerator.SnippetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bson.Document;
 
 import java.util.*;
 
@@ -10,24 +15,31 @@ public class QueryProcessOrchestrator {
     public HashMap<String, LexiconWordTuple> lexicon = new HashMap<>();
     public String semanticsFlag;
 
+    int totalDocNum;
+    PageUrlTableLoader pageUrlTableLoader = new PageUrlTableLoader();
+
     private static final Logger LOGGER = LogManager.getLogger(QueryProcessOrchestrator.class);
 
-    public void executeQuery() {
+    public void preLoadMetaData() {
         // Load lexicon
         LOGGER.info("Loading lexicon...");
         LexiconLoader lexiconLoader = new LexiconLoader();
         lexiconLoader.loadLexicon();
         lexicon = lexiconLoader.lexiconMap;
-        int totalDocNum = Integer.valueOf(lexiconLoader.totalDocNum);
+        totalDocNum = Integer.valueOf(lexiconLoader.totalDocNum);
         LOGGER.info("Lexicon loaded!");
 
         LOGGER.info("Loading pageUrlTable...");
-        PageUrlTableLoader pageUrlTableLoader = new PageUrlTableLoader();
+
         pageUrlTableLoader.loadPageUrlTable();
         LOGGER.info("PageUrlTable loaded!");
+    }
+
+    public List<QueryResponse> executeQuery(String input) {
 
         // Input keyword for search
-        List<String> inputWords = handleInput();
+//        List<String> inputWords = manualHandleInput();
+        List<String> inputWords = inputHandler(input);
 
         // Load meta for those keywords. Priority: keyword with shortest inverted index list first
         LOGGER.info("Loading metadata...");
@@ -39,9 +51,13 @@ public class QueryProcessOrchestrator {
         LOGGER.info("Executing query...");
         QueryProcessor queryProcessor = new QueryProcessor();
 
+        // Response list
+        List<QueryResponse> responseList = new ArrayList<>();
+
         // No doc that contains all the keywords for AND query, return false
         if (metaList.size() != inputWords.size() && semanticsFlag.equals("AND")){
             System.out.println("Cannot find any result, try OR query.");
+            return null;
         } else {
             if (semanticsFlag.equals("AND")) {
                 queryProcessor.processANDQuery(metaList, totalDocNum, pageUrlTableLoader);
@@ -50,15 +66,30 @@ public class QueryProcessOrchestrator {
             }
 
             // Reverse the order based on BM25 value
-            PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
-            while (!queryProcessor.docIdBmValueQueue.isEmpty()) {
-                DocIdWithBmValue pair = queryProcessor.docIdBmValueQueue.poll();
-                outQueue.add(pair);
-            }
+            PriorityQueue<DocIdWithBmValue> outQueue = reversePriorityQueue(queryProcessor.docIdBmValueQueue);
+
+
+
             while (!outQueue.isEmpty()) {
                 DocIdWithBmValue pair = outQueue.poll();
-                System.out.println(String.valueOf(pair.docId) + " " + String.valueOf(pair.bmValue) + " " + Arrays.toString(pair.freq));
+                int docId = pair.docId;
+
+                String url = pageUrlTableLoader.pageUrlTable.get(String.valueOf(docId)).get(0);
+
+                // Get content data from mongoDB
+                MongoCollection<Document> collection = MongoDBUtil.getMongoCollection();
+                Document doc = MongoDBUtil.getRecord(collection, docId);
+                String content = doc.values().toString();
+
+                List<String> snippets = SnippetUtils.generateSnippets(content, inputWords);
+
+                QueryResponse response = new QueryResponse(docId, pair.bmValue, Arrays.toString(pair.freq), url, snippets);
+                responseList.add(response);
+
+//                System.out.println(String.valueOf(pair.docId) + " " + String.valueOf(pair.bmValue) + " " + Arrays.toString(pair.freq));
+//                System.out.println(snippets.get(0)+snippets.get(1));
             }
+            return responseList;
         }
     }
 
@@ -71,7 +102,7 @@ public class QueryProcessOrchestrator {
         return metaList;
     }
 
-    private List<String> handleInput() {
+    private List<String> manualHandleInput() {
         Scanner reader = new Scanner(System.in);
         System.out.print("Input key words: ");
         System.out.println();
@@ -85,6 +116,19 @@ public class QueryProcessOrchestrator {
         } else {
             semanticsFlag = "AND";
             String[] result = input.split("\\s*(=>|,|\\s)\\s*");
+            return Arrays.asList(result);
+        }
+    }
+
+    private List<String> inputHandler(String input) {
+        if (input.contains("|")) {
+            semanticsFlag = "OR";
+            String[] result = input.split("\\|");
+            return Arrays.asList(result);
+        } else {
+            semanticsFlag = "AND";
+//            String[] result = input.split("\\s*(=>|,|\\s)\\s*");
+            String[] result = input.split("&");
             return Arrays.asList(result);
         }
     }
@@ -116,6 +160,15 @@ public class QueryProcessOrchestrator {
             metaList.add(meta);
         }
         return metaList;
+    }
+
+    private PriorityQueue<DocIdWithBmValue> reversePriorityQueue(PriorityQueue<DocIdWithBmValue> queue) {
+        PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
+        while (!queue.isEmpty()) {
+            DocIdWithBmValue pair = queue.poll();
+            outQueue.add(pair);
+        }
+        return outQueue;
     }
 
     // Shorted list first

@@ -1,8 +1,11 @@
 package edu.nyu.tz976.InvertedIndexGenerator;
 
+import com.mongodb.client.MongoCollection;
 import edu.nyu.tz976.DocIdCounter;
+import edu.nyu.tz976.MongoDBUtils.MongoDBUtil;
 import edu.nyu.tz976.PageUrlTable;
 import edu.nyu.tz976.WordCountMap;
+import org.bson.Document;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -20,6 +23,7 @@ public class WetReader {
         List<String> headerList = new ArrayList<>();
 
         BufferedReader reader = null;
+        MongoCollection<Document> mongoCollection = MongoDBUtil.getMongoCollection();
 
         try {
             File file = path.toFile();
@@ -37,6 +41,9 @@ public class WetReader {
                     if(contentType.equals("Content")) {
                         int docId = DocIdCounter.getDocId();
                         if (processDocData(contentList, headerList, docId)) {
+                            // Insert content into MongoDB
+                            MongoDBUtil.insertRecord(mongoCollection, contentList, docId);
+                            // Update pageUrlTable
                             PageUrlTable.appendPageUrlList(pageUrlList);
                         }
 

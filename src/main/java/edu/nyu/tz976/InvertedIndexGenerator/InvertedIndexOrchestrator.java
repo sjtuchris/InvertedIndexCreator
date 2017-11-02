@@ -1,5 +1,6 @@
 package edu.nyu.tz976.InvertedIndexGenerator;
 
+import edu.nyu.tz976.MongoDBUtils.MongoDBUtil;
 import edu.nyu.tz976.PageUrlTable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,8 @@ public class InvertedIndexOrchestrator {
 
     public void createInvertedIndexList() {
         cleanHistoryFiles();
+        // Clear old mongoDB data
+        MongoDBUtil.clearMongoDBTable();
 
         IndexGenerator indexGenerator = new IndexGenerator();
 
@@ -42,9 +45,10 @@ public class InvertedIndexOrchestrator {
             e.printStackTrace();
         }
 
+        // Create Index based on docId for mongoDB
+        MongoDBUtil.createMongoIndex();
 
         // Write intermediatePosting and pageUrlTable to disk
-
         OutputUtils.writePageUrlTable(PageUrlTable.getPageUrlTable());
         LOGGER.info("PageUrlTable generated!");
 
@@ -87,22 +91,6 @@ public class InvertedIndexOrchestrator {
             e.printStackTrace();
         }
 
-
-
-//        try {
-//            String command =
-//                    "cd ./output;" +
-//                    "for f in Postings_*.txt ;" +
-//                    "do sort -o $f < $f ;" +
-//                    "done;" +
-//                    "sort -n --merge Postings_*.txt -o sortedPostings.txt;" +
-//                    "rm *_*.txt";
-//            Process process = new ProcessBuilder("/bin/bash", "-c", command).start();
-//            process.waitFor();
-//
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
     }
 
     private List<Path> wetFileList(String directory) {
@@ -132,10 +120,6 @@ public class InvertedIndexOrchestrator {
             wetReader.loadWetData(path);
             LOGGER.info("Wet data " + fileName + " loaded!");
 
-            // Iterate the content list, do the word-doc-freq mapping and page-url-termNum mapping
-            //                    LOGGER.info("Processing " + fileName);
-            //                    docProcessor.processDocData(wetReader.fileContentList, wetReader.fileHeaderList);
-            //                    LOGGER.info("Process " + fileName + " complete!");
 
             // Write out temp postings
             LOGGER.info("Generating tempPostings for " + fileName);
