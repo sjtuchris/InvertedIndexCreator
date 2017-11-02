@@ -1,5 +1,7 @@
-package edu.nyu.tz976;
+package edu.nyu.tz976.InvertedIndexGenerator;
 
+import edu.nyu.tz976.Compressor;
+import edu.nyu.tz976.LexiconWordTuple;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.*;

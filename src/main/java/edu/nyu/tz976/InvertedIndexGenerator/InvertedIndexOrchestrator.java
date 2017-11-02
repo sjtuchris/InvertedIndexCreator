@@ -1,5 +1,6 @@
-package edu.nyu.tz976;
+package edu.nyu.tz976.InvertedIndexGenerator;
 
+import edu.nyu.tz976.PageUrlTable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

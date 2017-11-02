@@ -1,5 +1,7 @@
 package edu.nyu.tz976;
 
+import edu.nyu.tz976.InvertedIndexGenerator.IndexGenerator;
+import edu.nyu.tz976.MongoDBUtils.MongoDBJDBC;
 import edu.nyu.tz976.QueryExecutor.BMValueComparatorReverse;
 import edu.nyu.tz976.QueryExecutor.DocIdWithBmValue;
 import edu.nyu.tz976.QueryExecutor.LexiconLoader;
@@ -8,6 +10,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.*;
 
 public class Test {
+    public void testMongo() {
+        MongoDBJDBC mongo = new MongoDBJDBC();
+        mongo.getMongoCollection();
+    }
+
     public void test() {
         List<Integer> a = new ArrayList<>();
         a.add(1);

@@ -1,4 +1,8 @@
-package edu.nyu.tz976;
+package edu.nyu.tz976.InvertedIndexGenerator;
+
+import edu.nyu.tz976.DocIdCounter;
+import edu.nyu.tz976.PageUrlTable;
+import edu.nyu.tz976.WordCountMap;
 
 import java.io.*;
 import java.nio.file.Path;

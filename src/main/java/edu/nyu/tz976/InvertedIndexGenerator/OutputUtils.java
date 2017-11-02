@@ -1,5 +1,8 @@
-package edu.nyu.tz976;
+package edu.nyu.tz976.InvertedIndexGenerator;
 
+import edu.nyu.tz976.DocIdCounter;
+import edu.nyu.tz976.LexiconWordTuple;
+import edu.nyu.tz976.WordCountMap;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;

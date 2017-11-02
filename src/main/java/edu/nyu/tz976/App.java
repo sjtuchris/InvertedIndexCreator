@@ -1,5 +1,6 @@
 package edu.nyu.tz976;
 
+import edu.nyu.tz976.InvertedIndexGenerator.InvertedIndexOrchestrator;
 import edu.nyu.tz976.QueryExecutor.QueryProcessOrchestrator;
 
 import java.util.Scanner;
@@ -35,7 +36,7 @@ public class App
                 break;
             case "D":
                 Test createInvertedIndexList = new Test();
-                createInvertedIndexList.testCompress();
+                createInvertedIndexList.testMongo();
                 break;
             default:
                 System.out.println("Invalid selection!");
