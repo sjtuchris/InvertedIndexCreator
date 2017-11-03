@@ -83,7 +83,7 @@ public class QueryProcessOrchestrator {
 
                 List<String> snippets = SnippetUtils.generateSnippets(content, inputWords);
 
-                QueryResponse response = new QueryResponse(docId, pair.bmValue, Arrays.toString(pair.freq), url, snippets);
+                QueryResponse response = new QueryResponse(docId, pair.bmValue, freqSequence(pair.freq, inputWords), url, snippets);
                 responseList.add(response);
 
 //                System.out.println(String.valueOf(pair.docId) + " " + String.valueOf(pair.bmValue) + " " + Arrays.toString(pair.freq));
@@ -169,6 +169,16 @@ public class QueryProcessOrchestrator {
             outQueue.add(pair);
         }
         return outQueue;
+    }
+
+    private String freqSequence(int[] freq, List<String> inputWords) {
+        String sequence = "";
+
+        for (int i = 0; i<freq.length; i++) {
+            sequence = sequence + " " + inputWords.get(i) + " : " + String.valueOf(freq[i]) + ";";
+        }
+
+        return sequence;
     }
 
     // Shorted list first

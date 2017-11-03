@@ -16,12 +16,12 @@ public class App
 
 //        AdminFunction.adminFunction();
 
-        InvertedIndexOrchestrator invertedIndexOrchestrator = new InvertedIndexOrchestrator();
-        invertedIndexOrchestrator.createInvertedIndexList();
-
-//        QueryProcessOrchestrator queryProcessOrchestrator = new QueryProcessOrchestrator();
-//        queryProcessOrchestrator.preLoadMetaData();
-//        startServer(queryProcessOrchestrator);
+//        InvertedIndexOrchestrator invertedIndexOrchestrator = new InvertedIndexOrchestrator();
+//        invertedIndexOrchestrator.createInvertedIndexList();
+//
+        QueryProcessOrchestrator queryProcessOrchestrator = new QueryProcessOrchestrator();
+        queryProcessOrchestrator.preLoadMetaData();
+        startServer(queryProcessOrchestrator);
     }
 
 
