@@ -37,7 +37,7 @@ public class App
             server.start();
             System.out.println("The server is running");
         } catch (IOException ioe) {
-//            log.log(Level.SEVERE, "error creating http server");
+            ioe.printStackTrace();
         }
     }
 
