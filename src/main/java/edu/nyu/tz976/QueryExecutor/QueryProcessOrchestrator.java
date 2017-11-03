@@ -109,7 +109,7 @@ public class QueryProcessOrchestrator {
 
         String input = reader.nextLine();
         //If contain "|", its semantics is OR
-        if (input.contains("|")) {
+        if (input.contains("@")) {
             semanticsFlag = "OR";
             String[] result = input.split("\\|");
             return Arrays.asList(result);
