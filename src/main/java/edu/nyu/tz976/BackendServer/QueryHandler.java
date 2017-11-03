@@ -22,15 +22,20 @@ public class QueryHandler implements HttpHandler {
 
         OutputStream os = httpExchange.getResponseBody();
 
-        Gson gson = new Gson();
-
         String output = "";
 
         if (responseList == null) {
             httpExchange.sendResponseHeaders(200, 1000);
             os.write("No results found!".getBytes());
         } else {
-            output = gson.toJson(responseList);
+            // If you want to get Json string, use gson as following
+            // Gson gson = new Gson();
+            // output = gson.toJson(responseList);
+
+            //Generate XML file
+            XMLCreator xmlCreator = new XMLCreator();
+            output = xmlCreator.getDocumentString(xmlCreator.createDocument(responseList));
+
             httpExchange.sendResponseHeaders(200, output.getBytes().length);
             os.write(output.getBytes());
         }
