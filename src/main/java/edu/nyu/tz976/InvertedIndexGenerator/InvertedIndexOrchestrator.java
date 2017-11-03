@@ -29,7 +29,7 @@ public class InvertedIndexOrchestrator {
         List<Path> pathList = wetFileList("./input");
 
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(8);
+            ExecutorService executor = Executors.newFixedThreadPool(16);
             countDownLatch = new CountDownLatch(pathList.size());
 
             for (Path path:pathList) {
