@@ -123,12 +123,12 @@ public class QueryProcessOrchestrator {
     private List<String> inputHandler(String input) {
         if (input.contains("@")) {
             semanticsFlag = "OR";
-            String[] result = input.split("\\|");
+            String[] result = input.split("@");
             return Arrays.asList(result);
         } else {
             semanticsFlag = "AND";
 //            String[] result = input.split("\\s*(=>|,|\\s)\\s*");
-            String[] result = input.split("$");
+            String[] result = input.split("&");
             return Arrays.asList(result);
         }
     }
