@@ -32,12 +32,12 @@ public class MongoDBUtil {
         try {
             MongoDatabase mongoDatabase = MongoDBUtil.connectDataBase();
 
-            // Check if collection already exist, if not create one
-            boolean collectionExists = mongoDatabase.listCollectionNames()
-                    .into(new ArrayList<String>()).contains("docIdContentTable");
-            if (!collectionExists) {
-                mongoDatabase.createCollection("docIdContentTable");
-            }
+//            // Check if collection already exist, if not create one
+//            boolean collectionExists = mongoDatabase.listCollectionNames()
+//                    .into(new ArrayList<String>()).contains("docIdContentTable");
+//            if (!collectionExists) {
+//                mongoDatabase.createCollection("docIdContentTable");
+//            }
 
             // Get collections
             return mongoDatabase.getCollection("docIdContentTable");
