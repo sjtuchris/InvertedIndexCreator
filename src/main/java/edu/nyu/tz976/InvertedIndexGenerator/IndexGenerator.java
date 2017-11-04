@@ -115,18 +115,6 @@ public class IndexGenerator {
 
         writeInvertedIndex(blockData, lastChunkDocIdList, chunkSizeList);
 
-//        for (Entry<String, String> docFreqPair:docFreqParList) {
-//            try {
-//                byte[] byteData = compressDocFreqPair(docFreqPair.getKey(), docFreqPair.getValue());
-//
-//                invertedIndexOutStream.write(byteData);
-//                endByte = endByte + byteData.length;
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
     }
 
     // The meta structure is: metaDocListLength, metaChunkSizeLength, lastChunkDocIdList, chunkSizeList, chunks...

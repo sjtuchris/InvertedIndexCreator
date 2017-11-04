@@ -61,6 +61,19 @@ public class InvertedIndexOrchestrator {
         LOGGER.info("Starting generating inverted index list and lexicon");
         indexGenerator.processTempPostings();
         LOGGER.info("Inverted index list complete!");
+        removeTempFile();
+    }
+
+    public void prepareDataSet() {
+        Runtime rt = Runtime.getRuntime();
+
+        try {
+            Process pr = rt.exec(new String[] {"/bin/sh", "./src/main/shell/initialize.sh"});
+            pr.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void cleanHistoryFiles() {
@@ -91,6 +104,17 @@ public class InvertedIndexOrchestrator {
             e.printStackTrace();
         }
 
+    }
+
+    private void removeTempFile() {
+        try {
+            String command = "rm sortedPostings.txt";
+            Process process = new ProcessBuilder("/bin/bash", "-c", command).start();
+            process.waitFor();
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private List<Path> wetFileList(String directory) {

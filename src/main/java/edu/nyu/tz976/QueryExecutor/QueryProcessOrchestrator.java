@@ -12,10 +12,13 @@ import org.bson.Document;
 import java.util.*;
 
 public class QueryProcessOrchestrator {
+    // Load lexicon into a hash map
     public HashMap<String, LexiconWordTuple> lexicon = new HashMap<>();
+    // Mark the query is an "AND" or "OR" query
     public String semanticsFlag;
-
+    // Get total page number
     int totalDocNum;
+    // Load pageUrlTable
     PageUrlTableLoader pageUrlTableLoader = new PageUrlTableLoader();
 
     private static final Logger LOGGER = LogManager.getLogger(QueryProcessOrchestrator.class);
@@ -38,7 +41,6 @@ public class QueryProcessOrchestrator {
     public List<QueryResponse> executeQuery(String input) {
 
         // Input keyword for search
-//        List<String> inputWords = manualHandleInput();
         List<String> inputWords = inputHandler(input);
 
         // Load meta for those keywords. Priority: keyword with shortest inverted index list first
@@ -86,13 +88,12 @@ public class QueryProcessOrchestrator {
                 QueryResponse response = new QueryResponse(docId, pair.bmValue, freqSequence(pair.freq, inputWords), url, snippets);
                 responseList.add(response);
 
-//                System.out.println(String.valueOf(pair.docId) + " " + String.valueOf(pair.bmValue) + " " + Arrays.toString(pair.freq));
-//                System.out.println(snippets.get(0)+snippets.get(1));
             }
             return responseList;
         }
     }
 
+    // Get number of pages that contain this word from lexicon
     private List<InvertedIndexMeta> assignNumberOfDocContainTerm(List<InvertedIndexMeta> list) {
         List<InvertedIndexMeta> metaList = new ArrayList<>();
         for (InvertedIndexMeta meta:list) {
@@ -108,7 +109,7 @@ public class QueryProcessOrchestrator {
         System.out.println();
 
         String input = reader.nextLine();
-        //If contain "|", its semantics is OR
+        //If contain "@", its semantics is OR
         if (input.contains("@")) {
             semanticsFlag = "OR";
             String[] result = input.split("\\|");
@@ -121,18 +122,20 @@ public class QueryProcessOrchestrator {
     }
 
     private List<String> inputHandler(String input) {
+        //If contain "@", its semantics is OR
         if (input.contains("@")) {
             semanticsFlag = "OR";
             String[] result = input.split("@");
             return Arrays.asList(result);
         } else {
+            //If contain "&", its semantics is AND
             semanticsFlag = "AND";
-//            String[] result = input.split("\\s*(=>|,|\\s)\\s*");
             String[] result = input.split("&");
             return Arrays.asList(result);
         }
     }
 
+    // Construct priority queue for metadata of each word
     private PriorityQueue<InvertedIndexMeta> constructMetaQueue(List<String> inputWords) {
         Comparator<InvertedIndexMeta> metaComparator = new ChunkNumComparator();
         PriorityQueue<InvertedIndexMeta> metaQueue =
@@ -140,9 +143,11 @@ public class QueryProcessOrchestrator {
 
         for (int i=0; i<inputWords.size(); i++) {
             String word = inputWords.get(i);
+            // Load start byte from lexicon
             LexiconWordTuple tuple = lexicon.get(word);
 
             if (tuple != null) {
+                // Based on the start byte, retrieve meta data from inverted index
                 InvertedIndexMeta meta = DAATUtils.loadInvertedIndexMeta(Long.valueOf(tuple.startByte));
                 meta.lexiconWordTuple = tuple;
                 meta.word = word;
@@ -153,6 +158,7 @@ public class QueryProcessOrchestrator {
         return metaQueue;
     }
 
+    // Internal tool
     private List<InvertedIndexMeta> queueToList(PriorityQueue<InvertedIndexMeta> queue) {
         List<InvertedIndexMeta> metaList = new ArrayList<>();
         while (!queue.isEmpty()) {
@@ -162,6 +168,7 @@ public class QueryProcessOrchestrator {
         return metaList;
     }
 
+    // Internal tool
     private PriorityQueue<DocIdWithBmValue> reversePriorityQueue(PriorityQueue<DocIdWithBmValue> queue) {
         PriorityQueue<DocIdWithBmValue> outQueue = new PriorityQueue<>(11, new BMValueComparator());
         while (!queue.isEmpty()) {
@@ -171,6 +178,7 @@ public class QueryProcessOrchestrator {
         return outQueue;
     }
 
+    // Output freq data in a nicer format
     private String freqSequence(int[] freq, List<String> inputWords) {
         String sequence = "";
 

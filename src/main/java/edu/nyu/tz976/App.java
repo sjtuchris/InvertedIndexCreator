@@ -14,18 +14,12 @@ public class App
     {
         System.out.println( "Web Search Engine starts!" );
 
-//        AdminFunction.adminFunction();
-
-//        InvertedIndexOrchestrator invertedIndexOrchestrator = new InvertedIndexOrchestrator();
-//        invertedIndexOrchestrator.createInvertedIndexList();
-//
-        QueryProcessOrchestrator queryProcessOrchestrator = new QueryProcessOrchestrator();
-        queryProcessOrchestrator.preLoadMetaData();
-        startServer(queryProcessOrchestrator);
+        // Choose the function you would like to run
+        AdminFunction.adminFunction();
     }
 
 
-    private static void startServer(QueryProcessOrchestrator queryProcessOrchestrator) {
+    public static void startServer(QueryProcessOrchestrator queryProcessOrchestrator) {
         try{
             HttpServer server = HttpServer.create(new InetSocketAddress(8888), 0);
 
